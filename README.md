@@ -59,16 +59,25 @@ Detailed documentation is available in [Weblate documentation][doc].
 
 ## 공식 저장소 대비 추가된 것
 
-- `docker-compose/settings-override.py` — `UPDATE_LANGUAGES = False`를
-  설정해, Weblate 내장 언어 목록이 위 도구들로 생성/삭제한 언어를
-  덮어쓰지 않도록 합니다. 컨테이너 내부의 `/app/data/settings-override.py`에
-  마운트됩니다
-  ([문서](https://docs.weblate.org/en/latest/admin/install/docker.html#overriding-settings-from-the-data-volume)).
-- `docker-compose/docker-compose.override.yml` — 이미지를
-  `weblate/weblate:5.4.3.2`로 고정하고 `8080` 포트를 노출합니다.
-  **이 버전 고정은 필수입니다**: 961371 패치의
-  `WeblateRestService.__init__`이 `WEBLATE_SUPPORTED_VERSION == "5.4"`를
-  하드코딩으로 검사해서, 다른 버전에서는 실행 자체를 거부합니다.
+- `docker-compose.yml` (최상위, 자체 작성) — 공식 `WeblateOrg/docker-compose`
+  서브모듈은 쓰지 않습니다. weblate/database/cache 3개 서비스만 있는 단순한
+  구성이라, 서브모듈을 쓰면 상대경로 해석이 서브모듈 내부 기준으로
+  꼬여서 오히려 관리가 더 어려웠습니다. 대신 이 리포에 필요한 내용만
+  담아 직접 작성했습니다:
+  - 이미지를 `weblate/weblate:5.4.3.2`로 고정 — **필수**: 961371 패치의
+    `WeblateRestService.__init__`이 `WEBLATE_SUPPORTED_VERSION == "5.4"`를
+    하드코딩으로 검사해서, 다른 버전에서는 실행 자체를 거부합니다
+  - `8080` 포트 노출
+  - `settings-override.py`(최상위)를 `/app/data/settings-override.py`에 마운트
+- `settings-override.py` (최상위) —
+  ([문서](https://docs.weblate.org/en/latest/admin/install/docker.html#overriding-settings-from-the-data-volume)에
+  따른 데이터 볼륨 설정 오버라이드):
+  - `UPDATE_LANGUAGES = False` — Weblate 내장 언어 목록이 위 도구들로
+    생성/삭제한 언어를 덮어쓰지 않도록 함
+  - `DEFAULT_LANGUAGE = "en_US"` — Weblate 기본값(`"en"`)은
+    `zanata.json`에 없는 코드라, `UPDATE_LANGUAGES=False`와 맞물리면
+    언어 상세 페이지가 자기 자신으로 리다이렉트 루프에 빠짐. 실제
+    존재하는 코드로 맞춰서 해결
 - `tox.ini` + `scripts/` — 컨테이너 라이프사이클과, 두 스크립트가 쓰는
   API 토큰을 관리합니다.
 - `i18n/` — 961371 패치가 적용된(`git review -d 961371`) `openstack/i18n`

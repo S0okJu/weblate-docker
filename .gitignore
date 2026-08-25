@@ -1,4 +1,5 @@
 /docker-compose.override.yml
+/settings-override.py
 /.venv
 /.codex
 
