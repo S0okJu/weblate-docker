@@ -1,3 +1,13 @@
 /docker-compose.override.yml
 /.venv
 /.codex
+
+# openstack/i18n checkout used to run the Zanata->Weblate language tooling
+# (gerrit change 961371) against this local Weblate instance. Never commit it.
+/i18n/
+
+# Weblate API token saved via `tox -e save-token`. Never commit it.
+/.weblate-token
+
+/.tox
+__pycache__/
