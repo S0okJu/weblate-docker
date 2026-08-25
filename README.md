@@ -1,49 +1,22 @@
 <a href="https://weblate.org/"><img alt="Weblate" src="https://s.weblate.org/cdn/Logo-Darktext-borders.png" height="80px" /></a>
 
-**Weblate is libre software web-based continuous localization system,
-used by over 2500 libre projects and companies in more than 165 countries.**
+# weblate-docker: openstack/i18n 언어 관리 도구 테스트 환경
 
-# Official Docker container for Weblate
+이 저장소는 원래 [WeblateOrg/docker](https://github.com/WeblateOrg/docker)
+(Weblate 공식 이미지 빌드 레포)를 fork해서 시작했지만, 이 fork에서는
+**이미지를 직접 빌드하지 않고** Docker Hub의 `weblate/weblate:5.4.3.2`를
+그대로 받아 쓰기 때문에, 이미지 빌드용 파일(`Dockerfile`, `etc/`,
+`patches/` 등)과 업스트림 CI/린트 설정은 전부 정리했습니다. 남아있는 건
+아래에서 설명하는 로컬 테스트 환경 하나뿐입니다.
 
-[![Website](https://img.shields.io/badge/website-weblate.org-blue.svg)](https://weblate.org/)
-[![Translation status](https://hosted.weblate.org/widgets/weblate/-/svg-badge.svg)](https://hosted.weblate.org/engage/weblate/?utm_source=widget)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/552/badge)](https://bestpractices.coreinfrastructure.org/projects/552)
-[![Documentation](https://readthedocs.org/projects/weblate/badge/)][doc]
+Weblate 자체에 대한 공식 문서는 <https://docs.weblate.org/>,
+프로덕션 배포용 공식 docker-compose는
+<https://github.com/WeblateOrg/docker-compose>를 참고하세요.
 
-## Running Weblate
-
-- [Weblate docker-compose](https://github.com/WeblateOrg/docker-compose)
-- [OpenShift](https://docs.weblate.org/en/latest/admin/install/openshift.html)
-- [Helm chart for Weblate](https://hub.helm.sh/charts/weblate/weblate)
-
-## Exposed ports
-
-The webserver is running on the port 8080.
-
-## Reverse proxy addresses
-
-When `WEBLATE_IP_PROXY_HEADER=HTTP_X_FORWARDED_FOR` is enabled, configure
-`WEBLATE_TRUSTED_PROXY_ADDRESSES` with a whitespace-separated list of the IP
-addresses, networks, or hostnames of reverse proxies allowed to supply client
-addresses. The built-in nginx uses the resolved address both in its logs and
-when forwarding the request to Weblate. With an empty list, it uses the
-immediate TCP peer. Because nginx forwards a single normalized address, the
-container uses an effective `WEBLATE_IP_PROXY_OFFSET` of `0` in this mode.
-
-## Documentation
-
-Detailed documentation is available in [Weblate documentation][doc].
-
-[doc]: https://docs.weblate.org/en/latest/admin/install/docker.html
-
----
-
-# 로컬 테스트 환경: openstack/i18n 언어 관리 도구
-
-이 fork는 [gerrit 변경 961371](https://review.opendev.org/c/openstack/i18n/+/961371)에서
+구체적으로는 [gerrit 변경 961371](https://review.opendev.org/c/openstack/i18n/+/961371)에서
 제안된 Zanata → Weblate 언어 마이그레이션 스크립트
 (`create_languages_weblate.py` / `delete_languages.py`)를 테스트하기 위한
-로컬 Weblate 인스턴스를 추가로 구성한 것입니다.
+로컬 Weblate 인스턴스를 구성합니다.
 
 ## 사전 준비물
 
@@ -57,7 +30,7 @@ Detailed documentation is available in [Weblate documentation][doc].
 `wlc`, `requests`, `git-review` 등 파이썬 패키지는 전부 tox가 `.tox/`
 밑 격리된 venv에 알아서 설치하므로 따로 pip install 할 필요 없습니다.
 
-## 공식 저장소 대비 추가된 것
+## 구성 요소
 
 - `docker-compose.yml` (최상위, 자체 작성) — 공식 `WeblateOrg/docker-compose`
   서브모듈은 쓰지 않습니다. weblate/database/cache 3개 서비스만 있는 단순한
@@ -162,3 +135,8 @@ Detailed documentation is available in [Weblate documentation][doc].
 - `WeblateRestService.__init__`은 인자 없이 `wlc.Weblate()`도 생성합니다.
   실행 환경에 따라 `wlc`의 자체 설정 탐색 로직과 충돌할 수 있으니, 문제가
   생기면 알려주세요 — 같이 더 파고들어 고정해보겠습니다.
+- 최신 `wlc`(pip 최신 버전, `openstack/i18n`이 버전을 고정 안 해서 그대로
+  설치됨)는 `weblate.ini`의 `[weblate] key = ...` 형식을 보안상 거부하고
+  `[keys]` 섹션에 **URL 문자열 자체를 옵션 이름으로** 토큰을 넣도록
+  바뀌었습니다 (`openstack/i18n`의 README가 설명하는 옛 포맷과 다름).
+  `scripts/gen_weblate_ini.py`가 새 포맷에 맞춰 파일을 생성합니다.
