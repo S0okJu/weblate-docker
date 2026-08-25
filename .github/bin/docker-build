@@ -1,2 +1,0 @@
-#!/bin/sh
-eval "docker buildx build $(.github/bin/get-buildx-args "$@" | sed 's/$/ /' | tr -d \\n)"
